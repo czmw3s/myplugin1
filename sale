@@ -1,0 +1,384 @@
+<?php 
+ /*
+   Plugin Name: Awesomeness Creator
+   Plugin URI: https://lifetod.com
+   description: >-
+  a plugin to create awesomeness and spread joy
+   Version: 1.2
+   Author: Mr. Awesome
+   Author URI: https://facebook.com
+   License: GPL2
+   */
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
+// Function to add text shortcode to posts and pages
+function lifetod_form(){
+$content="";
+$content.='<form method="POST" action="https://www.lifetod.com/thankyou/">';
+$content.='<input type="text" name="full_name" placeholder="your full name"/>';
+$content.='</br>';
+$content.='<input type="text" name="email" placeholder="your email address"/>';
+$content.='</br>';
+$content.='<input type="text" name="phone" placeholder="your phone number"/>';
+$content.='</br>';
+$content.='<textarea name="comments" placeholder="your content"></textarea>';
+$content.='</br>';
+$content.='<input type="submit" name=lifetod_submit_form value="submit your information">';
+$content.='</form>';
+
+
+return $content;
+
+
+ }
+
+ add_shortcode ('lifetodform','lifetod_form');
+ 
+ function sethtml_content_type(){
+
+
+	return 'text/html';
+}
+ 
+ 
+ 
+
+ function lifetod_form_capture(){
+
+if(array_key_exists('lifetod_submit_form', $_POST)){
+
+$too="safayetcubd@gmail.com";
+$subject="lifetod form submission";
+$body='';
+$body.='Name:'.$_POST['full_name'].'</br>';
+$body.='email:'.$_POST['email'].'</br>';
+$body.='phone:'.$_POST['phone'].'</br>';
+$body.='comments:'.$_POST['comments'].'</br>';
+add_filter('wp_mail_content_type','sethtml_content_type');
+
+wp_mail($too,$subject,$body);
+remove_filter('wp_mail_content_type','sethtml_content_type');
+
+}
+
+ }
+add_action('wp_head','lifetod_form_capture');
+function wooca_extra_register_fields() {
+?><p class="form-row form-row-wide">
+ <label for="reg_billing_phone"><?php _e( 'Phone', 'woocommerce' ); ?></label>
+ <input type="text" class="input-text" name="billing_phone" id="reg_billing_phone" value="<?php esc_attr_e( $_POST['billing_phone']  );?>"/>
+</p>
+<?php
+}
+
+ add_action( 'woocommerce_register_form_start', 'wooca_extra_register_fields' );
+ 
+ 
+ 
+ add_action( 'woocommerce_before_single_product_summary', 'social_share_counter' );
+
+function social_share_counter() {
+   
+   echo '';
+}
+//user display
+
+add_action( 'woocommerce_after_single_product', 'bbloomer_custom_action', 1 );
+ function bbloomer_custom_action() {
+echo do_shortcode("");
+}
+//Display Free shipping
+function show_free_shipping () {
+    if  ( has_term( 'Free Shipping From Chittagong', 'product_tag' )) {
+echo '<p class="loopfree">Free Shipping</p>';}
+}
+add_action('woocommerce_after_shop_loop_item','show_free_shipping',4);
+
+//free shipping on certain category
+function cat_backpack() {
+    if  ( has_term( 'backpack', 'product_cat' )) {
+echo '<p class="loopfree">Free Shipping</p>';}
+}
+add_action('woocommerce_before_add_to_cart_form','cat_backpack',5);
+
+//Expected delivery
+
+function expected_delivery(){
+    if(has_term('Overseas','product_tag')){
+        
+        echo '<p id="delivery1">Expected Delivery Next 12-15 Days<p>';
+    }
+     else{
+        
+        echo '<p id="delivery1">Estimate Delivery Next 2-6 Days<p>';
+    }
+}
+add_action('woocommerce_before_add_to_cart_button','expected_delivery');
+
+/** Disable All WooCommerce  Styles and Scripts Except Shop Pages*/
+add_action( 'wp_enqueue_scripts', 'dequeue_woocommerce_styles_scripts', 99 );
+function dequeue_woocommerce_styles_scripts() {
+if ( function_exists( 'is_woocommerce' ) ) {
+if ( ! is_woocommerce() && ! is_cart() && ! is_checkout() ) {
+# Styles
+wp_dequeue_style( 'woocommerce-general' );
+wp_dequeue_style( 'woocommerce-layout' );
+wp_dequeue_style( 'woocommerce-smallscreen' );
+wp_dequeue_style( 'woocommerce_frontend_styles' );
+wp_dequeue_style( 'woocommerce_fancybox_styles' );
+wp_dequeue_style( 'woocommerce_chosen_styles' );
+wp_dequeue_style( 'woocommerce_prettyPhoto_css' );
+# Scripts
+wp_dequeue_script( 'wc_price_slider' );
+wp_dequeue_script( 'wc-single-product' );
+wp_dequeue_script( 'wc-add-to-cart' );
+wp_dequeue_script( 'wc-cart-fragments' );
+wp_dequeue_script( 'wc-checkout' );
+wp_dequeue_script( 'wc-add-to-cart-variation' );
+wp_dequeue_script( 'wc-single-product' );
+wp_dequeue_script( 'wc-cart' );
+wp_dequeue_script( 'wc-chosen' );
+wp_dequeue_script( 'woocommerce' );
+wp_dequeue_script( 'prettyPhoto' );
+wp_dequeue_script( 'prettyPhoto-init' );
+wp_dequeue_script( 'jquery-blockui' );
+wp_dequeue_script( 'jquery-placeholder' );
+wp_dequeue_script( 'fancybox' );
+wp_dequeue_script( 'jqueryui' );
+}
+}
+}
+
+// Remove tag and only use ctegories in WooCommerce related products - By Robin Scott of Silicon Dales see https://silicondales.com/tutorials/woocommerce/remove-categories-only-use-tags-related-products/
+add_filter( 'woocommerce_get_related_product_tag_terms','sd_remove_related_product_tags', 10, 2 );
+function sd_remove_related_product_tags( $wc_get_product_term_ids, $product_id ){
+ return array();
+}
+
+
+ //woocommerce seperate registration page
+
+// THIS WILL CREATE A NEW SHORTCODE: [wc_reg_form_bbloomer]
+  
+add_shortcode( 'wc_reg_form_bbloomer', 'bbloomer_separate_registration_form' );
+    
+function bbloomer_separate_registration_form() {
+   if ( is_admin() ) return;
+   if ( is_user_logged_in() ) return;
+   ob_start();
+ 
+   // NOTE: THE FOLLOWING <FORM></FORM> IS COPIED FROM woocommerce\templates\myaccount\form-login.php
+   // IF WOOCOMMERCE RELEASES AN UPDATE TO THAT TEMPLATE, YOU MUST CHANGE THIS ACCORDINGLY
+    
+   ?>
+ 
+      <form method="post" class="woocommerce-form woocommerce-form-register register" <?php do_action( 'woocommerce_register_form_tag' ); ?> >
+ 
+         <?php do_action( 'woocommerce_register_form_start' ); ?>
+ 
+         <?php if ( 'no' === get_option( 'woocommerce_registration_generate_username' ) ) : ?>
+ 
+            <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+               <label for="reg_username"><?php esc_html_e( 'Username', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
+               <input type="text" class="woocommerce-Input woocommerce-Input--text input-text" name="username" id="reg_username" autocomplete="username" value="<?php echo ( ! empty( $_POST['username'] ) ) ? esc_attr( wp_unslash( $_POST['username'] ) ) : ''; ?>" /><?php // @codingStandardsIgnoreLine ?>
+            </p>
+ 
+         <?php endif; ?>
+ 
+         <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+            <label for="reg_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
+            <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="reg_email" autocomplete="email" value="<?php echo ( ! empty( $_POST['email'] ) ) ? esc_attr( wp_unslash( $_POST['email'] ) ) : ''; ?>" /><?php // @codingStandardsIgnoreLine ?>
+         </p>
+ 
+         <?php if ( 'no' === get_option( 'woocommerce_registration_generate_password' ) ) : ?>
+ 
+            <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+               <label for="reg_password"><?php esc_html_e( 'Password', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
+               <input type="password" class="woocommerce-Input woocommerce-Input--text input-text" name="password" id="reg_password" autocomplete="new-password" />
+            </p>
+ 
+         <?php else : ?>
+ 
+            <p><?php esc_html_e( 'A password will be sent to your email address.', 'woocommerce' ); ?></p>
+ 
+         <?php endif; ?>
+ 
+         <?php do_action( 'woocommerce_register_form' ); ?>
+ 
+         <p class="woocommerce-FormRow form-row">
+            <?php wp_nonce_field( 'woocommerce-register', 'woocommerce-register-nonce' ); ?>
+            <button type="submit" class="woocommerce-Button button" name="register" value="<?php esc_attr_e( 'Register', 'woocommerce' ); ?>"><?php esc_html_e( 'Register', 'woocommerce' ); ?></button>
+         </p>
+ 
+         <?php do_action( 'woocommerce_register_form_end' ); ?>
+ 
+      </form>
+ 
+   <?php
+     
+   return ob_get_clean();
+}
+
+//woocommerce seperate login page
+  
+// THIS WILL CREATE A NEW SHORTCODE: [wc_login_form_bbloomer]
+  
+add_shortcode( 'wc_login_form_bbloomer', 'bbloomer_separate_login_form' );
+  
+function bbloomer_separate_login_form() {
+   if ( is_admin() ) return;
+   if ( is_user_logged_in() ) return; 
+   ob_start();
+   woocommerce_login_form();
+   return ob_get_clean();
+}
+
+//woocommerce title limit
+
+// Automatically shortens WooCommerce product titles on the main shop, category, and tag pages 
+// to a specific number of words
+function short_woocommerce_product_titles_words( $title, $id ) {
+  if ( ( is_shop() || is_product_tag() || is_product_category() ) && get_post_type( $id ) === 'product' ) {
+    $title_words = explode(" ", $title);
+    if ( count($title_words) > 8 ) { // Kicks in if the product title is longer than 5 words
+      // Shortens the title to 5 words and adds ellipsis at the end
+      return implode(" ", array_slice($title_words, 0, 8)) . '...';
+    } else {
+      return $title; // If the title isn't longer than 5 words, it will be returned in its full length without the ellipsis
+    }
+  } else {
+    return $title;
+  }
+}
+add_filter( 'the_title', 'short_woocommerce_product_titles_words', 10, 2 );
+//Register new order status
+function wpblog_wc_register_post_statuses() {
+register_post_status( 'wc-shipping-progress', array(
+'label' => _x( 'Rejected', 'WooCommerce Order status', 'text_domain' ),
+'public' => true,
+'exclude_from_search' => false,
+'show_in_admin_all_list' => true,
+'show_in_admin_status_list' => true,
+'label_count' => _n_noop( 'Approved (%s)', 'Approved (%s)', 'text_domain' )
+) );
+}
+add_filter( 'init', 'wpblog_wc_register_post_statuses' );
+// add new order status to woocommerce
+function wpblog_wc_add_order_statuses( $order_statuses ) {
+$order_statuses['wc-shipping-progress'] = _x( 'Rejected', 'WooCommerce Order status', 'text_domain' );
+return $order_statuses;
+}
+add_filter( 'wc_order_statuses', 'wpblog_wc_add_order_statuses' );
+/* WooCommerce: The Code Below Removes Checkout Fields */
+add_filter( 'woocommerce_checkout_fields' , 'custom_override_checkout_fields' );
+function custom_override_checkout_fields( $fields ) {
+unset($fields['billing']['billing_city']);
+unset($fields['billing']['billing_address_2']);
+unset($fields['order']['order_comments']);
+return $fields;
+}
+add_filter( 'woocommerce_order_button_text', 'misha_custom_button_text' );
+ function misha_custom_button_text( $button_text ) {
+   return 'Place Order'; // new text is here 
+}
+//change placeholder and label
+add_filter( 'woocommerce_default_address_fields' , 'override_default_address_fields' );
+function override_default_address_fields( $address_fields ) {
+    $address_fields['address_1']['label'] = __('Your Address', 'woocommerce');
+        $address_fields['address_1']['placeholder'] = __('Enter address', 'woocommerce');
+    return $address_fields;
+}
+// Create woocommerce recently viewed shortcode
+add_shortcode( 'recently_viewed_products', 'bbloomer_recently_viewed_shortcode' );
+ 
+function bbloomer_recently_viewed_shortcode() {
+ 
+   $viewed_products = ! empty( $_COOKIE['woocommerce_recently_viewed'] ) ? (array) explode( '|', wp_unslash( $_COOKIE['woocommerce_recently_viewed'] ) ) : array();
+   $viewed_products = array_reverse( array_filter( array_map( 'absint', $viewed_products ) ) );
+ 
+   if ( empty( $viewed_products ) ) return;
+    
+   $title = '<h3>Recently Viewed Products</h3>';
+   $product_ids = implode( ",", $viewed_products );
+ 
+   return $title . do_shortcode("[products ids='$product_ids']");
+   
+}
+// Remove the product description Title
+add_filter( 'woocommerce_product_description_heading', '__return_null' );
+
+
+// Change the product description title
+add_filter('woocommerce_product_description_heading', 'change_product_description_heading');
+function change_product_description_heading() {
+ return __('', 'woocommerce');
+ }
+ // shipping rate
+ 
+ add_action( 'woocommerce_single_product_summary', 'bbloomer_display_pressure_badge', 6 );
+   
+function bbloomer_display_pressure_badge() {
+    echo '<div class="woocommerce-message"> Now 50Tk delivery fee in Your area!</div>';
+}
+//sale count 1
+add_action( 'woocommerce_single_product_summary', 'bbloomer_product_sold_count', 11 );
+add_action( 'woocommerce_after_shop_loop_item_title', 'bbloomer_product_sold_count', 10 );
+function bbloomer_product_sold_count() {
+   global $product;
+   $units_sold = $product->get_total_sales();
+   if ( $units_sold ) echo '<p id="psale">' . sprintf( __( 'Total Sold: %s', 'woocommerce' ), $units_sold ) . '</p>';
+}
+// disable admin Bar for all users except administrator
+add_action('after_setup_theme', 'remove_admin_bar');
+function remove_admin_bar() {
+if (!current_user_can('administrator') && !is_admin()) {
+  show_admin_bar(false);
+}
+}
+//bulk change order status cancelled
+add_filter( 'bulk_actions-edit-shop_order', 'my_register_bulk_action' ); // edit-shop_order is the screen ID of the orders page
+function my_register_bulk_action( $bulk_actions ) {
+$bulk_actions['mark_change_status_to_cancelled'] = 'Order Cancel'; // <option value="mark_awaiting_shipment">Order Cancel</option>
+return $bulk_actions;
+}
+/*
+ * Bulk action handler
+ * Make sure that "action name" in the hook is the same like the option value from the above function
+ */
+add_action( 'admin_action_mark_change_status_to_cancelled', 'my_bulk_process_custom_status' ); // admin_action_{action name}
+function my_bulk_process_custom_status() {
+// if an array with order IDs is not presented, exit the function
+if( !isset( $_REQUEST['post'] ) && !is_array( $_REQUEST['post'] ) )
+    return;
+foreach( $_REQUEST['post'] as $order_id ) {
+
+    $order = new WC_Order( $order_id );
+    $order_note = 'That\'s what happened by bulk edit:';
+    $order->update_status( 'cancelled', $order_note, true ); // "my-shipment" is the order status name 
+}
+// of course using add_query_arg() is not required, you can build your URL inline
+$location = add_query_arg( array(
+        'post_type' => 'shop_order',
+    'mark_change_status_to_cancelled' => 1, // mark_change_status_to_cancelled=1 is just the $_GET variable for notices
+    'changed' => count( $_REQUEST['post'] ), // number of changed orders
+    'ids' => join( $_REQUEST['post'], ',' ),
+    'post_status' => 'wc-processing'
+), 'edit.php' );
+wp_redirect( admin_url( $location ) );
+exit;
+}
+/*
+ * Notices
+ */
+add_action('admin_notices', 'my_custom_order_status_notices');
+function my_custom_order_status_notices() {
+    global $pagenow, $typenow;
+if( $typenow == 'shop_order' 
+ && $pagenow == 'edit.php'
+ && isset( $_REQUEST['mark_change_status_to_cancelled'] )
+ && $_REQUEST['mark_change_status_to_cancelled'] == 1
+ && isset( $_REQUEST['changed'] ) ) {
+    $message = sprintf( _n( 'Order status changed.', '%s order statuses changed.', $_REQUEST['changed'] ), number_format_i18n( $_REQUEST['changed'] ) );
+    echo "<div class=\"updated\"><p>{$message}</p></div>";
+}
+}
